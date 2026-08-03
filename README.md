@@ -6,6 +6,12 @@ AI Career Copilot helps users analyze their resumes, compare them against job de
 
 ---
 
+## 🎥 Demo
+
+<p align="center">
+  <img src="assets/demo.gif" alt="AI Career Copilot Demo" width="900"/>
+</p>
+
 # ✨ Features
 
 ### 📄 Resume Processing
