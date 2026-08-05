@@ -154,7 +154,6 @@ def render_job_page():
 
                 st.rerun()
 
-
 def render_dashboard():
     
     st.markdown("""
@@ -420,6 +419,7 @@ def render_dashboard():
     )
 
 
+
 def render_chat_page():
 
     if "chat_history" not in st.session_state:
@@ -481,4 +481,74 @@ def render_chat_page():
                 "role": "assistant",
                 "content": response
             }
+        )
+
+def render_sidebar():
+
+    with st.sidebar:
+
+        st.title("🚀 AI Career Copilot")
+
+        st.divider()
+
+        if "resume_path" in st.session_state:
+
+            st.markdown("### 📄 Resume")
+
+            st.success(
+                os.path.basename(
+                    st.session_state.resume_path
+                )
+            )
+
+        st.divider()
+
+        feature = st.radio(
+
+            "Navigation",
+
+            [
+                "🏠 Home",
+                "✨ Resume Optimizer",
+                "💬 AI Resume Chat",
+            ],
+
+            label_visibility="collapsed",
+        )
+
+        if feature == "🏠 Home":
+            st.session_state.feature = "home"
+
+        elif feature == "✨ Resume Optimizer":
+            st.session_state.feature = "optimizer"
+
+        else:
+            st.session_state.feature = "chat"
+
+        st.divider()
+
+        st.caption("🚧 Coming Soon")
+
+        st.button(
+            "📄 Cover Letter",
+            disabled=True,
+            use_container_width=True,
+        )
+
+        st.button(
+            "🎯 Interview Prep",
+            disabled=True,
+            use_container_width=True,
+        )
+
+        st.button(
+            "📈 Career Roadmap",
+            disabled=True,
+            use_container_width=True,
+        )
+
+        st.button(
+            "📥 Export Report",
+            disabled=True,
+            use_container_width=True,
         )

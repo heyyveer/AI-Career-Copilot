@@ -1,15 +1,15 @@
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 
 load_dotenv()
 
-embedding_model = GoogleGenerativeAIEmbeddings(
-    model="models/gemini-embedding-2"
+embedding_model = HuggingFaceEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5"
 )
-
 
 def process_resume(
     pdf_path: str,
