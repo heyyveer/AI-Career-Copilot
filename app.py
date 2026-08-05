@@ -302,197 +302,30 @@ if "resume_path" not in st.session_state:
 # Upload Screen
 # ---------------------------------------------------
 
+from ui import (
+    render_chat_page,
+    render_upload_page,
+    render_job_page,
+    render_dashboard,
+)
+
 if st.session_state.page == "upload":
-
-    st.markdown(
-        "<div class='main-title'>📄 Resume Copilot</div>",
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        "<div class='sub-title'>AI Powered Resume Intelligence</div>",
-        unsafe_allow_html=True
-    )
-
-    st.markdown("<div class='big-space'></div>", unsafe_allow_html=True)
-
-    left, center, right = st.columns([1,2,1])
-
-    with center:
-
-        # st.markdown("<div class='upload-card'>", unsafe_allow_html=True)
-
-        uploaded_file = st.file_uploader(
-
-            "Upload Resume",
-
-            type=["pdf"],
-
-            label_visibility="collapsed"
-
-        )
-
-        st.markdown(
-            """
-            <h3>Drop your Resume here</h3>
-
-            <p>Supported format : PDF</p>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # -----------------------------
-        # Auto Process Resume
-        # -----------------------------
-
-        if uploaded_file is not None:
-
-            os.makedirs("uploads", exist_ok=True)
-
-            file_path = os.path.join(
-                "uploads",
-                uploaded_file.name
-            )
-
-            with open(file_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-
-            progress = st.progress(0)
-
-            status = st.empty()
-
-            status.info("Uploading Resume...")
-
-            progress.progress(20)
-
-            time.sleep(0.5)
-
-            status.info("Reading Resume...")
-
-            progress.progress(40)
-
-            time.sleep(0.5)
-
-            status.info("Creating Embeddings...")
-
-            progress.progress(70)
-
-            process_resume(file_path)
-
-            time.sleep(0.5)
-
-            status.success("Resume Processed Successfully ✅")
-
-            progress.progress(100)
-
-            st.session_state.resume_processed = True
-
-            st.session_state.resume_path = file_path
-
-            time.sleep(1)
-
-            st.session_state.page = "job"
-
-            st.rerun()
+    render_upload_page()
 
 # ---------------------------------------------------
 # Job Description Screen
 # ---------------------------------------------------
 
 from agents import (
-    analyze_resume,
     chat_with_resume,
-    generate_summary,
-    generate_suggestions,
 )
 
 if "analysis" not in st.session_state:
     st.session_state.analysis = ""
 
-if "summary" not in st.session_state:
-    st.session_state.summary = ""
-
-if "suggestions" not in st.session_state:
-    st.session_state.suggestions = ""
-
 
 if st.session_state.page == "job":
-
-    st.markdown(
-        "<div class='main-title'>🎯 Resume Analysis</div>",
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        "<div class='sub-title'>Tell us which job you are targeting</div>",
-        unsafe_allow_html=True
-    )
-
-    st.write("")
-
-    role = st.text_input(
-        "Target Role",
-        placeholder="Example : AI Engineer"
-    )
-
-    st.write("")
-
-    job_description = st.text_area(
-        "Job Description",
-        placeholder="Paste complete Job Description here...",
-        height=250
-    )
-
-    st.write("")
-
-    col1, col2, col3 = st.columns([2,2,2])
-
-    with col2:
-
-        analyze = st.button(
-            "🚀 Analyze Resume",
-            use_container_width=True
-        )
-
-    if analyze:
-
-        if role.strip() == "" or job_description.strip() == "":
-
-            st.warning(
-                "Please enter Target Role and Job Description."
-            )
-
-        else:
-
-            with st.spinner("Analyzing Resume..."):
-
-                analysis = analyze_resume(
-                    role=role,
-                    job_description=job_description
-                )
-
-                summary = generate_summary(
-                    analysis
-                )
-
-                suggestions = generate_suggestions(
-                    analysis
-                )
-
-                st.session_state.analysis = analysis
-                st.session_state.summary = summary
-                st.session_state.suggestions = suggestions
-
-                st.session_state.role = role
-                st.session_state.job_description = job_description
-
-                time.sleep(1)
-
-                st.session_state.page = "dashboard"
-
-                st.rerun()
+    render_job_page()
 
 
 
@@ -502,117 +335,7 @@ if st.session_state.page == "job":
 
 if st.session_state.page == "dashboard":
 
-    st.markdown("""
-    <style>
-
-    .dashboard-card{
-
-        background:black;
-
-        border-radius:20px;
-
-        padding:30px;
-
-        box-shadow:0px 10px 30px rgba(0,0,0,.08);
-
-        margin-bottom:25px;
-
-    }
-
-    .section-title{
-
-        font-size:26px;
-
-        font-weight:700;
-
-        margin-bottom:20px;
-
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
-
-    top1, top2 = st.columns([6,2])
-
-    with top1:
-
-        st.markdown(
-            "# 📄 Resume Dashboard"
-        )
-
-    with top2:
-
-        if st.button(
-            "💬 Talk to Resume",
-            use_container_width=True
-        ):
-
-            st.session_state.page = "chat"
-
-            st.rerun()
-
-    st.write("")
-
-    # -----------------------------
-    # Summary Card
-    # -----------------------------
-
-    st.markdown(
-        """
-        <div class='dashboard-card'>
-        <div class='section-title'>
-        👤 Professional Summary
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.write(
-        st.session_state.summary
-    )
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # -----------------------------
-    # Analysis
-    # -----------------------------
-
-    st.markdown(
-        """
-        <div class='dashboard-card'>
-        <div class='section-title'>
-        📊 Resume Analysis
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.write(
-        st.session_state.analysis
-    )
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # -----------------------------
-    # Suggestions
-    # -----------------------------
-
-    st.markdown(
-        """
-        <div class='dashboard-card'>
-        <div class='section-title'>
-        💡 Improvement Suggestions
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.write(
-        st.session_state.suggestions
-    )
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
+    render_dashboard()
 
 
 # ---------------------------------------------------
@@ -624,59 +347,4 @@ if "chat_history" not in st.session_state:
 
 
 if st.session_state.page == "chat":
-
-    top1, top2 = st.columns([2,8])
-
-    with top1:
-
-        if st.button("⬅ Dashboard"):
-            st.session_state.page = "dashboard"
-            st.rerun()
-
-    with top2:
-
-        st.markdown("# 💬 Talk to Resume")
-
-    st.write("---")
-
-    # Display Chat History
-    for message in st.session_state.chat_history:
-
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # Chat Input
-    user_question = st.chat_input(
-        "Ask anything about your resume..."
-    )
-
-    if user_question:
-
-        # User Message
-        st.session_state.chat_history.append(
-            {
-                "role": "user",
-                "content": user_question
-            }
-        )
-
-        with st.chat_message("user"):
-            st.markdown(user_question)
-
-        # AI Response
-        with st.chat_message("assistant"):
-
-            with st.spinner("Thinking..."):
-
-                response = chat_with_resume(
-                    user_question
-                )
-
-                st.markdown(response)
-
-        st.session_state.chat_history.append(
-            {
-                "role": "assistant",
-                "content": response
-            }
-        )
+    render_chat_page()

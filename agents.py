@@ -1,15 +1,65 @@
-from utils import load_vector_store, generate
+import json
+
 from prompts import (
     ANALYSIS_PROMPT,
-    SUMMARY_PROMPT,
-    SUGGESTION_PROMPT,
     CHAT_PROMPT,
 )
 
+from utils import (
+    generate,
+    load_vector_store,
+)
 
-def get_resume_context(query: str, k: int = 4):
+
+DEFAULT_TOP_K = 4
+
+
+def parse_json_response(response: str) -> dict:
     """
-    Retrieve the most relevant resume chunks from FAISS.
+    Safely parse JSON returned by the LLM.
+    Removes markdown code fences if present.
+    """
+
+    response = response.strip()
+
+    if response.startswith("```json"):
+        response = response.replace("```json", "", 1)
+
+    if response.startswith("```"):
+        response = response.replace("```", "", 1)
+
+    if response.endswith("```"):
+        response = response[:-3]
+
+    response = response.strip()
+
+    try:
+        return json.loads(response)
+
+    except json.JSONDecodeError:
+
+        return {
+            "ats_score": 0,
+            "resume_match": 0,
+            "professional_summary": "Unable to generate summary.",
+            "strengths": [],
+            "weaknesses": [],
+            "missing_skills": [],
+            "missing_keywords": [],
+            "experience_feedback": "",
+            "project_feedback": "",
+            "education_feedback": "",
+            "formatting_feedback": "",
+            "suggestions": [],
+            "recommended_certifications": [],
+            "recommended_projects": [],
+            "final_verdict": "Analysis failed. Please try again."
+        }
+
+
+def get_resume_context(query: str, k: int = DEFAULT_TOP_K):
+    """
+    Retrieve relevant resume chunks from FAISS.
     """
 
     vector_store = load_vector_store()
@@ -19,26 +69,36 @@ def get_resume_context(query: str, k: int = 4):
         k=k
     )
 
-    context = "\n\n".join(
-        doc.page_content
-        for doc in docs
-    )
+    context = ""
+
+    for doc in docs:
+
+        page = doc.metadata.get("page", "Unknown")
+
+        context += f"""
+Page: {page}
+
+Content:
+{doc.page_content}
+
+----------------------------------------
+"""
 
     return context
 
 
-def analyze_resume(job_description: str, role: str):
+def analyze_resume(role: str, job_description: str):
     """
-    Analyze resume against Job Description.
+    Analyze resume against a Job Description.
     """
 
     search_query = f"""
-    Target Role:
-    {role}
+Target Role:
+{role}
 
-    Job Description:
-    {job_description}
-    """
+Job Description:
+{job_description}
+"""
 
     context = get_resume_context(search_query)
 
@@ -55,68 +115,17 @@ Job Description:
 {job_description}
 """
 
-    return generate(
+    response = generate(
         ANALYSIS_PROMPT,
         human_prompt
     )
-
-
-def generate_summary():
-    """
-    Generate professional resume summary.
-    """
-
-    context = get_resume_context(
-        "Provide a professional summary of this resume. Include key skills, experience, and education." \
-        "Keep it concise and recruiter-friendly. Dont give more than 200 words." \
-        "Do not add information that is not present in the resume." 
-    )
-
-    return generate(
-        SUMMARY_PROMPT,
-        context
-    )
-
-def generate_summary(analysis: str):
-    """
-    Generate a professional summary based on the resume analysis.
-    """
-
-    return generate(
-        SUMMARY_PROMPT,
-        analysis
-    )
-
-
-
-def generate_suggestions():
-    """
-    Generate resume improvement suggestions.
-    """
-
-    context = get_resume_context(
-        "Suggest improvements for this resume."
-    )
-
-    return generate(
-        SUGGESTION_PROMPT,
-        context
-    )
-
-def generate_suggestions(analysis: str):
-    """
-    Generate resume improvement suggestions.
-    """
-
-    return generate(
-        SUGGESTION_PROMPT,
-        analysis
-    )
+    print(response)
+    return parse_json_response(response)
 
 
 def chat_with_resume(user_question: str):
     """
-    Answer user questions about the resume.
+    Chat with resume using RAG.
     """
 
     context = get_resume_context(user_question)
@@ -127,6 +136,7 @@ Resume Context:
 {context}
 
 User Question:
+
 {user_question}
 """
 
