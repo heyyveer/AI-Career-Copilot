@@ -21,3 +21,4 @@ fastapi[standard]
 langchain-text-splitters
 langchain-huggingface
 sentence-transformers
+faiss-cpu
