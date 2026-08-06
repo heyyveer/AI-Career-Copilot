@@ -19,4 +19,5 @@ pydantic
 requests
 fastapi[standard]
 langchain-text-splitters
+langchain-huggingface
 sentence-transformers
